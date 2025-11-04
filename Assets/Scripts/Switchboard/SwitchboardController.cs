@@ -113,6 +113,7 @@ public class SwitchboardController : MonoBehaviour
         if (_closestJack != null)
         {
             //_selectedPlug.DetachFromCurrentJack();
+            _selectedPlug.currentJack = null;
             _selectedPlug.AttachToJack(_closestJack);
             _closestJack.ResetColor();
         }

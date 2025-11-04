@@ -65,14 +65,13 @@ public class PlugCord : MonoBehaviour
             return;
         
         rb.isKinematic = false;
-        _orb.kinematicForParticles = true;
-        
+        //_orb.kinematicForParticles = true;
         //rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+        //rb.angularVelocity = Vector3.zero;
         transform.rotation = Quaternion.identity;
         
         currentJack.currentPlug = null;
-        currentJack = null;
+        //currentJack = null;
     }
     
     /// <summary>
