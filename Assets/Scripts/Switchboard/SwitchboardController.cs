@@ -26,6 +26,8 @@ public class SwitchboardController : MonoBehaviour
     private JackSlot _closestJack;
     private PlugCord _selectedPlug;
 
+    private Plane _wall = new Plane(Vector3.forward, 0);
+    
     private int _framesSinceLastContact = 0;
     
     private WaitForFixedUpdate _waitForFixedUpdate = new WaitForFixedUpdate();
@@ -79,25 +81,30 @@ public class SwitchboardController : MonoBehaviour
     
     private IEnumerator DragUpdate(PlugCord plug, InputAction.CallbackContext context)
     {
-        float initDistance = Vector3.Distance(plug.transform.position, _camera.transform.position);
-        plug.TryGetComponent<Rigidbody>(out var rb);
+        var initDistance = Vector3.Distance(plug.transform.position, _camera.transform.position);
+        //plug.TryGetComponent<Rigidbody>(out var rb);
         while (context.ReadValue<float>() > 0f)
         {
             var ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            
 
-            if (!rb)
-                yield return null;
+            /*if (!rb)
+                yield return null;*/
             
             //Moving with velocity is the best approach in this case for rb.
-            Vector2 direction = ray.GetPoint(initDistance) - plug.transform.position;
-            rb.linearVelocity = direction * mouseDragSpeed;
+            /*Vector2 direction = ray.GetPoint(initDistance) - plug.transform.position;
+            rb.linearVelocity = direction * mouseDragSpeed;*/
+            if(_wall.Raycast(ray, out var hit))
+                _selectedPlug.MoveTowards(ray.GetPoint(hit) + Vector3.back);
             
             //_selectedPlug.UpdateCordLength();
             
             //Find the closest available jack and make a visual indication that it's free.
             _closestJack = FindOpenJack(_selectedPlug);
             if (_closestJack)
+            {
                 _closestJack.Tint();
+            }
             
             yield return _waitForFixedUpdate;
         }

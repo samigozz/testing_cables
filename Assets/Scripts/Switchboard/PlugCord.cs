@@ -14,6 +14,12 @@ public class PlugCord : MonoBehaviour
     [SerializeField] private float growthThreshold = 0.1f;
     [SerializeField] private float growthSpeed = 1.0f;
     
+    [Header("Movement")]
+    [SerializeField] private float stiffness = 200.0f;
+    [SerializeField] private float damping = 20.0f;
+    [SerializeField] private float maxAccel = 50.0f;
+    [SerializeField] private float minDistance = 0.05f;
+    
     public JackSlot currentJack;
 
     private Vector3 _originPos;
@@ -45,6 +51,22 @@ public class PlugCord : MonoBehaviour
         
         currentJack.currentPlug = this;
         transform.position = currentJack.transform.position;
+    }
+
+    public float MoveTowards(Vector3 pos)
+    {
+        var dir = pos - transform.position;
+        var distance = dir.magnitude;
+        
+        //damped spring
+        var accel = stiffness * dir - damping * rb.linearVelocity;
+        
+        //clamp spring accelerations
+        accel = Vector3.ClampMagnitude(accel, maxAccel);
+        
+        rb.AddForce(accel, ForceMode.Acceleration);
+        
+        return distance;
     }
 
     public void AttachToJack(JackSlot jack)
