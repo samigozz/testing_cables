@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using UnityEngine;
 using Obi;
 
@@ -22,30 +20,19 @@ public class PlugCord : MonoBehaviour
     
     public JackSlot currentJack;
 
-    private Vector3 _originPos;
     private Vector3 _prevPos;
-
-    private ObiRope _rope;
-    private ObiRopeCursor cursor;
     
     [HideInInspector] public Rigidbody rb;
     private ObiRigidbody _orb;
 
     private void Awake()
     {
-        _rope = GetComponentInParent<ObiRope>();
-        cursor = _rope.GetComponent<ObiRopeCursor>();
-        
         rb = GetComponent<Rigidbody>();
         _orb = GetComponent<ObiRigidbody>();
     }
 
     private void Start()
     {
-        _originPos = transform.position;
-
-        //rb.useGravity = true;
-        
         if (currentJack == null) 
             return;
         
@@ -53,10 +40,9 @@ public class PlugCord : MonoBehaviour
         transform.position = currentJack.transform.position;
     }
 
-    public float MoveTowards(Vector3 pos)
+    public void MoveTowards(Vector3 pos)
     {
         var dir = pos - transform.position;
-        var distance = dir.magnitude;
         
         //damped spring
         var accel = stiffness * dir - damping * rb.linearVelocity;
@@ -65,8 +51,6 @@ public class PlugCord : MonoBehaviour
         accel = Vector3.ClampMagnitude(accel, maxAccel);
         
         rb.AddForce(accel, ForceMode.Acceleration);
-        
-        return distance;
     }
 
     public void AttachToJack(JackSlot jack)
@@ -87,47 +71,9 @@ public class PlugCord : MonoBehaviour
             return;
         
         rb.isKinematic = false;
-        //_orb.kinematicForParticles = true;
-        //rb.linearVelocity = Vector3.zero;
-        //rb.angularVelocity = Vector3.zero;
         transform.rotation = Quaternion.identity;
         
         currentJack.currentPlug = null;
-        //currentJack = null;
-    }
-    
-    /// <summary>
-    /// Deprecated: previous version of rope
-    /// </summary>
-    public void UpdateCordLength()
-    {
-        var length = _rope.CalculateLength();
-        if (length >= maxLength ||  length <= minLength)
-            return;
-
-        if (rb.linearVelocity.magnitude < growthThreshold)
-            return;
-        
-        var dir = (_originPos - transform.position).normalized;
-        
-        var dot = Vector3.Dot(dir, rb.linearVelocity.normalized);
-
-        var isMovingToOrigin = dot > 0.1f;
-        
-        Debug.Log(isMovingToOrigin);
-
-        if (isMovingToOrigin)
-        {
-            cursor.ChangeLength(-growthSpeed * Time.deltaTime);
-        }
-        else
-        {
-            cursor.ChangeLength(growthSpeed * Time.deltaTime);
-        }
-    }
-
-    private IEnumerator MoveToSlot(JackSlot jack)
-    {
-        throw new NotImplementedException();
+        currentJack = null;
     }
 }

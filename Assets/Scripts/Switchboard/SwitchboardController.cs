@@ -1,15 +1,15 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Obi;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class SwitchboardController : MonoBehaviour
 {
-    [Header("Input Settings")]
+    [Header("General Settings")]
     [SerializeField] private float mouseDragSpeed = 10.0f;
+    [SerializeField] private Vector3 dragOffset;
+    [SerializeField] private LayerMask jackLayerMask;
 
     [Header("Plug And Jack")] 
     [SerializeField] private Transform jacksParent;
@@ -19,41 +19,33 @@ public class SwitchboardController : MonoBehaviour
     [SerializeField] private ObiSolver solver;
     
     private Camera _camera;
-    
-    private List<JackSlot> _jackSlots;
-    public List<JackSlot> GetAllJacks => _jackSlots;
+
+    [Header("Input")] [SerializeField] private InputActionReference rightClickAction;
     
     private JackSlot _closestJack;
     private PlugCord _selectedPlug;
 
-    private Plane _wall = new Plane(Vector3.forward, 0);
-    
-    private int _framesSinceLastContact = 0;
-    
-    private WaitForFixedUpdate _waitForFixedUpdate = new WaitForFixedUpdate();
+    private readonly WaitForFixedUpdate _waitForFixedUpdate = new();
 
     private void Awake()
     {
         _camera = Camera.main;
-        
-        if (jacksParent != null)
-            _jackSlots = new List<JackSlot>(jacksParent.GetComponentsInChildren<JackSlot>());
     }
 
     private void OnEnable()
     {
-        if(solver)
-            solver.OnParticleCollision += Solver_OnParticleCollision;
+        rightClickAction.action.performed += RightMouseClick;
+        rightClickAction.action.Enable();
     }
-
+    
     private void OnDisable()
     {
-        if(solver)
-            solver.OnParticleCollision -= Solver_OnParticleCollision;
+        rightClickAction.action.performed -= RightMouseClick;
+        rightClickAction.action.Disable();
     }
 
     // ---------- INPUT EVENTS ---------- //
-    public void RightMouseClick(InputAction.CallbackContext context)
+    private void RightMouseClick(InputAction.CallbackContext context)
     {
         if (context.performed)
         {
@@ -64,47 +56,33 @@ public class SwitchboardController : MonoBehaviour
 
             if (!hit.collider)
                 return;
+
+            if (!hit.collider.gameObject.TryGetComponent<PlugCord>(out var plug)) 
+                return;
             
-            if (hit.collider.gameObject.TryGetComponent<PlugCord>(out var plug))
-            {
-                _selectedPlug = plug;
-                _selectedPlug.DetachFromCurrentJack();
-                //_selectedPlug.rb.useGravity = false;
-                StartCoroutine(DragUpdate(_selectedPlug, context));
-            }
+            _selectedPlug = plug;
+            _selectedPlug.DetachFromCurrentJack();
+            StartCoroutine(DragUpdate(_selectedPlug, context));
         }
         else if (context.canceled)
         {
             DragRelease();
         }
     }
+    // -------------------------------- //
     
     private IEnumerator DragUpdate(PlugCord plug, InputAction.CallbackContext context)
     {
-        var initDistance = Vector3.Distance(plug.transform.position, _camera.transform.position);
-        //plug.TryGetComponent<Rigidbody>(out var rb);
         while (context.ReadValue<float>() > 0f)
         {
-            var ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            // Attach the plug to the current mouse position.
+            Vector3 screenPos = Mouse.current.position.ReadValue();
+            var z = _camera.WorldToScreenPoint(_selectedPlug.transform.position).z;
+            var worldPos = _camera.ScreenToWorldPoint(screenPos + new Vector3(0, 0, z));
             
-
-            /*if (!rb)
-                yield return null;*/
+            _selectedPlug.MoveTowards(worldPos + dragOffset);
             
-            //Moving with velocity is the best approach in this case for rb.
-            /*Vector2 direction = ray.GetPoint(initDistance) - plug.transform.position;
-            rb.linearVelocity = direction * mouseDragSpeed;*/
-            if(_wall.Raycast(ray, out var hit))
-                _selectedPlug.MoveTowards(ray.GetPoint(hit) + Vector3.back);
-            
-            //_selectedPlug.UpdateCordLength();
-            
-            //Find the closest available jack and make a visual indication that it's free.
             _closestJack = FindOpenJack(_selectedPlug);
-            if (_closestJack)
-            {
-                _closestJack.Tint();
-            }
             
             yield return _waitForFixedUpdate;
         }
@@ -119,25 +97,14 @@ public class SwitchboardController : MonoBehaviour
                 
         if (_closestJack != null)
         {
-            //_selectedPlug.DetachFromCurrentJack();
             _selectedPlug.currentJack = null;
             _selectedPlug.AttachToJack(_closestJack);
+            
             _closestJack.ResetColor();
+            _closestJack = null;
         }
         else
         {
-            //Return to initial position if mouse button released
-            //_selectedPlug.transform.localPosition = new Vector3(0, 1, 0);
-            //_selectedPlug.transform.localRotation = Quaternion.identity;
-
-            var rb = _selectedPlug.GetComponent<Rigidbody>();
-            
-            if (!rb)
-                return;
-            
-            /*rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;*/
-            
             _selectedPlug.DetachFromCurrentJack();
         }
         _selectedPlug = null;
@@ -146,48 +113,25 @@ public class SwitchboardController : MonoBehaviour
     private JackSlot FindOpenJack(PlugCord plug)
     {
         JackSlot closestJack = null;
-        var closestDistance = float.MaxValue;
+        var ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-        foreach (var jack in _jackSlots)
+        if (Physics.Raycast(ray, out var hit, 100, jackLayerMask))
         {
-            jack.ResetColor();
+            if (!hit.collider)
+                return null;
             
-            if (jack.currentPlug != null)
-                continue;
+            if (!hit.collider.gameObject.TryGetComponent<JackSlot>(out var jack)) 
+                return null;
             
-            var distance = Vector3.Distance(plug.transform.position, jack.transform.position);
-            if (distance < closestDistance && distance < maxDistanceFromJack)
-            {
-                closestJack = jack;
-                closestDistance = distance;
-            }
+            _closestJack?.ResetColor();
+            closestJack = jack;
+            closestJack.Tint();
+        }
+        else
+        {
+            _closestJack?.ResetColor();
         }
 
         return closestJack;
-    }
-    
-    /// <summary>
-    /// Handles collision between two obi ropes.
-    /// </summary>
-    private void Solver_OnParticleCollision(ObiSolver s, ObiNativeContactList e)
-    {
-        // Count contacts between different ropes (that is, exclude self-contacts):
-        int contactsBetweenRopes = 0;
-
-        for (int i = 0; i < e.count; ++i)
-        {
-            var ropeA = s.particleToActor[s.simplices[e[i].bodyA]].actor;
-            var ropeB = s.particleToActor[s.simplices[e[i].bodyB]].actor;
-
-            if (ropeA != ropeB)
-                contactsBetweenRopes++;
-        }
-
-        // If there's no contacts, bump the amount of frames we've been contact-free.
-        // Otherwise, reset the amount of frames to zero.
-        if (contactsBetweenRopes == 0)
-            _framesSinceLastContact++;
-        else
-            _framesSinceLastContact = 0;
     }
 }

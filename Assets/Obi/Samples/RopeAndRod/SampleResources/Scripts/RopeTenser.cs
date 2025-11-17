@@ -13,7 +13,6 @@ namespace Obi.Samples
             _rb = GetComponent<Rigidbody>();
         }
 
-        // Update is called once per frame
         void Update()
         {
             _rb?.AddForce(Vector3.down * force);
