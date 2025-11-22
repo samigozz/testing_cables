@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7146755383888866219
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3381760710763989394, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_Name
+      value: PFB_ToggleButton_Blue
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4210354826111144441, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: color.g
+      value: 0.25646096
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: color.r
+      value: 0.1745283
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: onColor.b
+      value: 0.9433962
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: onColor.g
+      value: 0.21883069
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: onColor.r
+      value: 0.12014952
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: offColor.b
+      value: 0.3584906
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: offColor.g
+      value: 0.16767561
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: offColor.r
+      value: 0.13358848
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: pressColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: pressColor.g
+      value: 0.32107043
+      objectReference: {fileID: 0}
+    - target: {fileID: 5395945737929386650, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}
+      propertyPath: pressColor.r
+      value: 0.0990566
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 7fde3f9efbc356c48af631fec1f1c709, type: 3}

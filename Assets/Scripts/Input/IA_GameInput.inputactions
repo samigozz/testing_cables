@@ -7,7 +7,7 @@
             "actions": [
                 {
                     "name": "RightClick",
-                    "type": "Value",
+                    "type": "Button",
                     "id": "39c36a1a-7322-4d4f-8d9d-a6009ce798a2",
                     "expectedControlType": "",
                     "processors": "",

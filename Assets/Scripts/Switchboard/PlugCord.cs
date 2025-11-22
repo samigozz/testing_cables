@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections;
 using Obi;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(ObiRigidbody), typeof(Rigidbody))]
-public class PlugCord : MonoBehaviour
+public class PlugCord : MonoBehaviour, IDrag
 {
     [SerializeField] private Vector3 dockOffset;
 
@@ -11,22 +13,32 @@ public class PlugCord : MonoBehaviour
     [SerializeField] private float minLength = 1.0f;
     [SerializeField] private float growthThreshold = 0.1f;
     [SerializeField] private float growthSpeed = 1.0f;
+    [SerializeField] private LayerMask jackLayerMask;
     
     [Header("Movement")]
+    [SerializeField] private Vector3 dragOffset;
     [SerializeField] private float stiffness = 200.0f;
     [SerializeField] private float damping = 20.0f;
     [SerializeField] private float maxAccel = 50.0f;
     [SerializeField] private float minDistance = 0.05f;
     
-    public JackSlot currentJack;
+    private Camera _camera;
+    
+    [HideInInspector] public JackSlot currentJack;
+    private JackSlot _closestJack;
 
     private Vector3 _prevPos;
+
+    private bool _isDragging = false;
     
     [HideInInspector] public Rigidbody rb;
     private ObiRigidbody _orb;
+    
+    private readonly WaitForFixedUpdate _waitForFixedUpdate = new();
 
     private void Awake()
     {
+        _camera = Camera.main;
         rb = GetComponent<Rigidbody>();
         _orb = GetComponent<ObiRigidbody>();
     }
@@ -53,7 +65,74 @@ public class PlugCord : MonoBehaviour
         rb.AddForce(accel, ForceMode.Acceleration);
     }
 
-    public void AttachToJack(JackSlot jack)
+    public void OnDragStart()
+    {
+        _isDragging = true;
+        DetachFromJack();
+        StartCoroutine(OnDragUpdate());
+    }
+
+    public IEnumerator OnDragUpdate()
+    {
+        while (_isDragging)
+        {
+            // Attach the plug to the current mouse position.
+            Vector3 screenPos = Mouse.current.position.ReadValue();
+            var z = _camera.WorldToScreenPoint(transform.position).z;
+            var worldPos = _camera.ScreenToWorldPoint(screenPos + new Vector3(0, 0, z));
+            
+            MoveTowards(worldPos + dragOffset);
+            
+            _closestJack = FindOpenJack();
+            
+            yield return _waitForFixedUpdate;
+        } 
+    }
+
+    public void OnDragRelease()
+    {
+        _isDragging = false;
+        StopCoroutine(OnDragUpdate());
+        
+        if (_closestJack != null)
+        {
+            currentJack = null;
+            AttachToJack(_closestJack);
+            
+            _closestJack.ResetColor();
+            _closestJack = null;
+        }
+        else
+        {
+            DetachFromJack();
+        }
+    }
+    
+    private JackSlot FindOpenJack()
+    {
+        JackSlot closestJack = null;
+        var ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+        if (Physics.Raycast(ray, out var hit, 100, jackLayerMask))
+        {
+            if (!hit.collider.gameObject.TryGetComponent<JackSlot>(out var jack)) 
+                return null;
+
+            if (jack.currentPlug)
+                return null;
+            
+            closestJack = jack;
+            closestJack.Tint();
+        }
+        else
+        {
+            _closestJack?.ResetColor();
+        }
+
+        return closestJack;
+    }
+    
+    private void AttachToJack(JackSlot jack)
     {
         currentJack = jack;
         currentJack.currentPlug = this;
@@ -65,7 +144,7 @@ public class PlugCord : MonoBehaviour
         _orb.kinematicForParticles = false;
     }
     
-    public void DetachFromCurrentJack()
+    private void DetachFromJack()
     {
         if (!currentJack)
             return;
