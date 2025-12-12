@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections;
 using Obi;
@@ -6,64 +7,51 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(ObiRigidbody), typeof(Rigidbody))]
 public class PlugCord : MonoBehaviour, IDrag
 {
-    [SerializeField] private Vector3 dockOffset;
-
     [Header("Cord Settings")] 
-    [SerializeField] private float maxLength = 10.0f;
-    [SerializeField] private float minLength = 1.0f;
-    [SerializeField] private float growthThreshold = 0.1f;
-    [SerializeField] private float growthSpeed = 1.0f;
+    [SerializeField] private Vector3 dockOffset;
     [SerializeField] private LayerMask jackLayerMask;
+    public bool isAnsweringCord = false;
     
     [Header("Movement")]
     [SerializeField] private Vector3 dragOffset;
     [SerializeField] private float stiffness = 200.0f;
     [SerializeField] private float damping = 20.0f;
     [SerializeField] private float maxAccel = 50.0f;
-    [SerializeField] private float minDistance = 0.05f;
+
+    private bool _isDragging;
     
     private Camera _camera;
+    private Rigidbody _rb;
     
-    [HideInInspector] public JackSlot currentJack;
-    private JackSlot _closestJack;
-
-    private Vector3 _prevPos;
-
-    private bool _isDragging = false;
+    private Jack _closestJack;
+    private Jack _currentJack;
+    public Jack GetCurrentJack => _currentJack;
     
-    [HideInInspector] public Rigidbody rb;
+    public bool IsConnected => _currentJack != null;
+    
+    // OBI
     private ObiRigidbody _orb;
+
+    public event Action OnPlugConnected;
     
     private readonly WaitForFixedUpdate _waitForFixedUpdate = new();
 
     private void Awake()
     {
         _camera = Camera.main;
-        rb = GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
         _orb = GetComponent<ObiRigidbody>();
     }
 
     private void Start()
     {
-        if (currentJack == null) 
+        if (_currentJack == null) 
             return;
         
-        currentJack.currentPlug = this;
-        transform.position = currentJack.transform.position;
+        _currentJack.currentPlug = this;
+        transform.position = _currentJack.transform.position;
     }
 
-    public void MoveTowards(Vector3 pos)
-    {
-        var dir = pos - transform.position;
-        
-        //damped spring
-        var accel = stiffness * dir - damping * rb.linearVelocity;
-        
-        //clamp spring accelerations
-        accel = Vector3.ClampMagnitude(accel, maxAccel);
-        
-        rb.AddForce(accel, ForceMode.Acceleration);
-    }
 
     public void OnDragStart()
     {
@@ -74,14 +62,19 @@ public class PlugCord : MonoBehaviour, IDrag
 
     public IEnumerator OnDragUpdate()
     {
+        var dragPlane = new Plane(Vector3.forward, transform.position);
         while (_isDragging)
         {
             // Attach the plug to the current mouse position.
             Vector3 screenPos = Mouse.current.position.ReadValue();
-            var z = _camera.WorldToScreenPoint(transform.position).z;
-            var worldPos = _camera.ScreenToWorldPoint(screenPos + new Vector3(0, 0, z));
-            
-            MoveTowards(worldPos + dragOffset);
+            //var worldPos = _camera.ScreenToWorldPoint(screenPos);
+            var ray = _camera.ScreenPointToRay(screenPos);
+
+            if (dragPlane.Raycast(ray, out var point))
+            {
+                var worldPos = ray.GetPoint(point);
+                MoveTowards(worldPos +  dragOffset);
+            }
             
             _closestJack = FindOpenJack();
             
@@ -96,7 +89,7 @@ public class PlugCord : MonoBehaviour, IDrag
         
         if (_closestJack != null)
         {
-            currentJack = null;
+            _currentJack = null;
             AttachToJack(_closestJack);
             
             _closestJack.ResetColor();
@@ -105,17 +98,32 @@ public class PlugCord : MonoBehaviour, IDrag
         else
         {
             DetachFromJack();
+            //TODO: Reset rope and plug to origin state so it prevents unwanted behaviour like clipping or
+            //losing the visibility to interact with it.
         }
     }
     
-    private JackSlot FindOpenJack()
+    private void MoveTowards(Vector3 pos)
     {
-        JackSlot closestJack = null;
+        var dir = pos - transform.position;
+        
+        //damped spring
+        var accel = stiffness * dir - damping * _rb.linearVelocity;
+        
+        //clamp spring accelerations
+        accel = Vector3.ClampMagnitude(accel, maxAccel);
+        
+        _rb.AddForce(accel, ForceMode.Acceleration);
+    }
+    
+    private Jack FindOpenJack()
+    {
+        Jack closestJack = null;
         var ray = _camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         if (Physics.Raycast(ray, out var hit, 100, jackLayerMask))
         {
-            if (!hit.collider.gameObject.TryGetComponent<JackSlot>(out var jack)) 
+            if (!hit.collider.gameObject.TryGetComponent<Jack>(out var jack)) 
                 return null;
 
             if (jack.currentPlug)
@@ -132,27 +140,34 @@ public class PlugCord : MonoBehaviour, IDrag
         return closestJack;
     }
     
-    private void AttachToJack(JackSlot jack)
+    private void AttachToJack(Jack jack)
     {
-        currentJack = jack;
-        currentJack.currentPlug = this;
+        _currentJack = jack;
+        _currentJack.currentPlug = this;
+
+        if (isAnsweringCord)
+        {
+            
+        }
+        
+        OnPlugConnected?.Invoke();
         
         transform.position = jack.transform.position + dockOffset;
         transform.rotation = Quaternion.Euler(90, 0, 0);
         
-        rb.isKinematic = true;
+        _rb.isKinematic = true;
         _orb.kinematicForParticles = false;
     }
     
     private void DetachFromJack()
     {
-        if (!currentJack)
+        if (!_currentJack)
             return;
         
-        rb.isKinematic = false;
+        _rb.isKinematic = false;
         transform.rotation = Quaternion.identity;
         
-        currentJack.currentPlug = null;
-        currentJack = null;
+        _currentJack.currentPlug = null;
+        _currentJack = null;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using DG.Tweening;
 
@@ -13,6 +14,8 @@ public class ToggleButton : MonoBehaviour, IInteractable
     [SerializeField] private float duration = 1f;
     [SerializeField] private Vector3 destination = new (0, 0.2f, 0);
     [SerializeField] private AnimationCurve toggleCurve;
+    [SerializeField, Range(0,1), Tooltip("The time at the duration of the tween that triggers the ON/OFF color, ranged from 0 to 1.")] 
+    private float colorTriggerTime = 0.35f;
     
     private bool _isOn;
     private Vector3 _startPos;
@@ -52,19 +55,28 @@ public class ToggleButton : MonoBehaviour, IInteractable
     
     public void Interact()
     {
-        PlayAnimation();
-        
+        StartCoroutine(PlayAnimation());
         _isOn = !_isOn;
-        
-        UpdateColor();
     }
 
-    private void PlayAnimation()
+    private IEnumerator PlayAnimation()
     {
+        Tweener tween = null;
+        
         if (_isOn)
-            movingPart.transform.DOLocalMove(_startPos, duration - 0.05f).SetEase(ReverseCurve(toggleCurve));
+        {
+            //Move back to OFF position.
+            tween = movingPart.transform.DOLocalMove(_startPos, duration - 0.05f).SetEase(ReverseCurve(toggleCurve));
+        }
         else
-            movingPart.transform.DOLocalMove(destination, duration).SetEase(toggleCurve);
+        {
+            //Move to ON position
+            tween = movingPart.transform.DOLocalMove(destination, duration).SetEase(toggleCurve);
+        }
+        
+        yield return tween.WaitForPosition(colorTriggerTime);
+        
+        UpdateColor();
     }
 
     private static AnimationCurve ReverseCurve(AnimationCurve curve)

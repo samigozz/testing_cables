@@ -1,12 +1,14 @@
 using System;
 using UnityEngine;
 
-public class JackSlot : MonoBehaviour
+public class Jack : MonoBehaviour
 {
     [SerializeField] private Color highlightColor = Color.yellow;
     
-    public PlugCord currentPlug;
-
+    [HideInInspector] public PlugCord currentPlug;
+    public bool IsOccupied => currentPlug != null;
+    public string SocketID { get; set; }
+        
     private Material _instance;
     private Color _defaultColor;
 

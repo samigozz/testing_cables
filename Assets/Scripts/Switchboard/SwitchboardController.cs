@@ -4,20 +4,15 @@ using UnityEngine.InputSystem;
 public class SwitchboardController : MonoBehaviour
 {
     [Header("General Settings")]
-    [SerializeField] private float mouseDragSpeed = 10.0f;
     [SerializeField] private Vector3 dragOffset;
     [SerializeField] private LayerMask jackLayerMask;
-
-    [Header("Plug And Jack")] 
-    [SerializeField] private Transform jacksParent;
-    [SerializeField] private float maxDistanceFromJack = 1.5f;
     
     [Header("Input")] 
     [SerializeField] private InputActionReference rightClickAction;
     
     private Camera _camera;
     
-    private JackSlot _closestJack;
+    private Jack _closestJack;
     private IDrag _draggedObj;
 
     private void Awake()
