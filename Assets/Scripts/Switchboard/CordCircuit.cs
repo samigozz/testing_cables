@@ -1,36 +1,70 @@
-using System;
 using UnityEngine;
 
 public class CordCircuit : MonoBehaviour
 {
     [SerializeField] private PlugCord answeringCord, callingCord;
     
-    public PhoneCall ActiveCall { get; private set; }
+    public Call ActiveCall { get; private set; }
 
     private void OnEnable()
     {
-        answeringCord.OnPlugConnected += CheckConnection;
-        callingCord.OnPlugConnected += CheckConnection;
+        answeringCord.OnPlugged += CordPlugged;
+        answeringCord.OnUnplugged += CordUnplugged;
+        callingCord.OnPlugged += CordPlugged;
+        callingCord.OnUnplugged += CordUnplugged;
     }
 
     private void OnDisable()
     {
-        answeringCord.OnPlugConnected -= CheckConnection;
-        callingCord.OnPlugConnected -= CheckConnection;
+        answeringCord.OnPlugged -= CordPlugged;
+        answeringCord.OnUnplugged -= CordUnplugged;
+        callingCord.OnPlugged -= CordPlugged;
+        callingCord.OnUnplugged -= CordUnplugged;
     }
 
-    private void CheckConnection()
+    private void CordPlugged(PlugCord plug)
     {
-        if (!answeringCord || !callingCord)
+        if (!plug)
             return;
         
-        var lineJack = answeringCord.GetCurrentJack;
-        var extensionJack = callingCord.GetCurrentJack;
+        var jack = plug.GetCurrentJack;
         
-    }
+        if (!jack)
+            return;
 
-    private void AnswerCall()
+        if (jack is LineJack lineJack && plug == answeringCord)
+        {
+            ActiveCall = lineJack.activeCall;
+
+            if (ActiveCall == null)
+                return;
+            
+            if (ActiveCall.callStatus != CallStatus.Ringing) 
+                return;
+            
+            ActiveCall.callStatus = CallStatus.Answererd;
+            jack.OnAnswerCall();
+        }
+        else if (plug == callingCord && ActiveCall != null && ActiveCall.callStatus == CallStatus.Answererd)
+        {
+            jack.OnAnswerCall();
+        }
+    }
+    private void CordUnplugged(PlugCord plug)
     {
+        if (!plug)
+            return;
         
+        var jack = plug.GetCurrentJack;
+
+        if (!jack)
+            return;
+
+        if (plug == answeringCord && ActiveCall != null)
+        {
+            ActiveCall.callStatus = CallStatus.Disconnected;
+        }
+        
+        jack.OnDisconnectCall();
     }
 }

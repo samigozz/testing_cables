@@ -19,6 +19,8 @@ public class PlugCord : MonoBehaviour, IDrag
     [SerializeField] private float maxAccel = 50.0f;
 
     private bool _isDragging;
+
+    private Vector3 _startPos;
     
     private Camera _camera;
     private Rigidbody _rb;
@@ -32,7 +34,8 @@ public class PlugCord : MonoBehaviour, IDrag
     // OBI
     private ObiRigidbody _orb;
 
-    public event Action OnPlugConnected;
+    public event Action<PlugCord> OnPlugged;
+    public event Action<PlugCord> OnUnplugged;
     
     private readonly WaitForFixedUpdate _waitForFixedUpdate = new();
 
@@ -45,11 +48,13 @@ public class PlugCord : MonoBehaviour, IDrag
 
     private void Start()
     {
-        if (_currentJack == null) 
-            return;
+        _startPos = transform.position;
         
-        _currentJack.currentPlug = this;
-        transform.position = _currentJack.transform.position;
+        if (_currentJack != null)
+        {
+            _currentJack.currentPlug = this;
+            transform.position = _currentJack.transform.position;
+        }
     }
 
 
@@ -62,13 +67,15 @@ public class PlugCord : MonoBehaviour, IDrag
 
     public IEnumerator OnDragUpdate()
     {
-        var dragPlane = new Plane(Vector3.forward, transform.position);
+        var dragPlane = new Plane(Vector3.forward, _startPos);
         while (_isDragging)
         {
             // Attach the plug to the current mouse position.
             Vector3 screenPos = Mouse.current.position.ReadValue();
             //var worldPos = _camera.ScreenToWorldPoint(screenPos);
             var ray = _camera.ScreenPointToRay(screenPos);
+            
+            Debug.DrawRay(ray.origin, ray.direction, Color.red);
 
             if (dragPlane.Raycast(ray, out var point))
             {
@@ -144,13 +151,8 @@ public class PlugCord : MonoBehaviour, IDrag
     {
         _currentJack = jack;
         _currentJack.currentPlug = this;
-
-        if (isAnsweringCord)
-        {
-            
-        }
         
-        OnPlugConnected?.Invoke();
+        OnPlugged?.Invoke(this);
         
         transform.position = jack.transform.position + dockOffset;
         transform.rotation = Quaternion.Euler(90, 0, 0);
@@ -163,6 +165,8 @@ public class PlugCord : MonoBehaviour, IDrag
     {
         if (!_currentJack)
             return;
+        
+        OnUnplugged?.Invoke(this);
         
         _rb.isKinematic = false;
         transform.rotation = Quaternion.identity;

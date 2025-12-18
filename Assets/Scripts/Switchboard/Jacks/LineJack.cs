@@ -2,8 +2,25 @@ using UnityEngine;
 
 public class LineJack : Jack
 {
-    public void Call()
+    [SerializeField, ColorUsage(false, true)] 
+    private Color ringingColor = Color.red;
+
+    public Call activeCall = null;
+    public bool IsOccupied => currentPlug != null && activeCall != null;
+    
+    public void InitCall(Call call)
     {
-        Debug.Log($"<color=orange>{SocketID} receiving a call.</color>");
+        activeCall = call;
+
+        if (activeCall == null)
+            return;
+        
+        lightIndicator?.UpdateLight(ringingColor, true);
+    }
+    
+    public void TimeOutCall()
+    {
+        activeCall = null;
+        lightIndicator?.UpdateLight(offColor, true);
     }
 }

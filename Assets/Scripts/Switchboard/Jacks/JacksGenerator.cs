@@ -17,7 +17,7 @@ public class JacksGenerator : MonoBehaviour
     {
         GenerateLineJacks();
         GenerateExtensionJacks();
-        CallManager.Instance.CreateMockCall();
+        //CallManager.Instance.CreateMockCall();
     }
 
     private void GenerateLineJacks()
@@ -28,7 +28,7 @@ public class JacksGenerator : MonoBehaviour
         for (int i = 0; i < columnLength; i++)
         {
             var pos = lineJacksParent.position + new Vector3(i * spacing.x, 0f, 0f);
-            var jack = Instantiate(lineJackPrefab, pos, lineJacksParent.transform.rotation, lineJacksParent);
+            var jack = Instantiate(lineJackPrefab, pos, lineJackPrefab.transform.rotation, lineJacksParent);
             jack.SocketID = $"Line{i + 1}";
             jack.gameObject.name = $"Jack_{jack.SocketID}";
             
