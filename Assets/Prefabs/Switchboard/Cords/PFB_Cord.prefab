@@ -466,10 +466,10 @@ MonoBehaviour:
   _stretchCompliance: 0
   _maxCompression: 0
   _bendConstraintsEnabled: 1
-  _bendCompliance: 0
+  _bendCompliance: 0.87
   _maxBending: 0
-  _plasticYield: 0
-  _plasticCreep: 0
+  _plasticYield: 0.0253
+  _plasticCreep: 2.73
 --- !u!114 &5932315180277995184
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -998,20 +998,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dockOffset: {x: 0, y: 0, z: -0.5}
-  maxLength: 5
-  minLength: 2
-  growthThreshold: 0.2
-  growthSpeed: 1
   jackLayerMask:
     serializedVersion: 2
     m_Bits: 128
+  isAnsweringCord: 0
   dragOffset: {x: 0, y: -0.2, z: 0}
   stiffness: 200
   damping: 10
   maxAccel: 100
-  minDistance: 0.05
-  currentJack: {fileID: 0}
-  rb: {fileID: 0}
 --- !u!1 &5664927731183470985
 GameObject:
   m_ObjectHideFlags: 0

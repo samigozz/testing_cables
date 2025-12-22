@@ -42,10 +42,10 @@ public class CordCircuit : MonoBehaviour
             if (ActiveCall.callStatus != CallStatus.Ringing) 
                 return;
             
-            ActiveCall.callStatus = CallStatus.Answererd;
+            ActiveCall.callStatus = CallStatus.Answered;
             jack.OnAnswerCall();
         }
-        else if (plug == callingCord && ActiveCall != null && ActiveCall.callStatus == CallStatus.Answererd)
+        else if (plug == callingCord && ActiveCall != null && ActiveCall.callStatus == CallStatus.Answered)
         {
             jack.OnAnswerCall();
         }

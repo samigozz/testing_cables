@@ -3,7 +3,12 @@ guid: b8b86aff32377914c971f214e565c23b
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: MAT_CordBoard
+    second: {fileID: 2100000, guid: dc70c48506ec3ac4c9b5acbb49dc16e6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

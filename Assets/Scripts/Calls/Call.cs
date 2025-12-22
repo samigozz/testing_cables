@@ -5,7 +5,7 @@ public enum CallStatus
 {
     Disconnected,
     Ringing,
-    Answererd,
+    Answered,
     Connected,
     Timeout
 }
